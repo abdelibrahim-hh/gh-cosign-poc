@@ -27,9 +27,9 @@ export interface RiskAssessment {
     };
     concerns: string[];
     quality_flags: {
-        missing_tests: boolean;
         security_concerns: boolean;
         unrelated_changes: boolean;
+        logic_defects: string[];
         anti_patterns: string[];
     };
 }

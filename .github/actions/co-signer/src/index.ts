@@ -81,9 +81,9 @@ ${assessment.reasoning}
 ${assessment.concerns.length > 0 ? `### Concerns\n${assessment.concerns.map((c) => `- ${c}`).join("\n")}` : ""}
 
 ${assessment.quality_flags ? `### Quality Signals
-- **Missing tests:** ${assessment.quality_flags.missing_tests ? "Yes" : "No"}
 - **Security concerns:** ${assessment.quality_flags.security_concerns ? "Yes" : "No"}
 - **Unrelated changes:** ${assessment.quality_flags.unrelated_changes ? "Yes" : "No"}
+${assessment.quality_flags.logic_defects.length > 0 ? `- **Logic defects:** ${assessment.quality_flags.logic_defects.join("; ")}` : ""}
 ${assessment.quality_flags.anti_patterns.length > 0 ? `- **Anti-patterns:** ${assessment.quality_flags.anti_patterns.join(", ")}` : ""}` : ""}
 
 ### Decision: ${decisionText}`;

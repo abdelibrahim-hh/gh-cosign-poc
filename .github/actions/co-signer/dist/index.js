@@ -41871,11 +41871,11 @@ function validateAssessment(data) {
     // quality_flags is required in the schema but we validate gracefully
     if (d.quality_flags && typeof d.quality_flags === "object") {
         const qf = d.quality_flags;
-        if (typeof qf.missing_tests !== "boolean")
-            return null;
         if (typeof qf.security_concerns !== "boolean")
             return null;
         if (typeof qf.unrelated_changes !== "boolean")
+            return null;
+        if (!Array.isArray(qf.logic_defects))
             return null;
         if (!Array.isArray(qf.anti_patterns))
             return null;
@@ -42241,9 +42241,9 @@ ${assessment.reasoning}
 ${assessment.concerns.length > 0 ? `### Concerns\n${assessment.concerns.map((c) => `- ${c}`).join("\n")}` : ""}
 
 ${assessment.quality_flags ? `### Quality Signals
-- **Missing tests:** ${assessment.quality_flags.missing_tests ? "Yes" : "No"}
 - **Security concerns:** ${assessment.quality_flags.security_concerns ? "Yes" : "No"}
 - **Unrelated changes:** ${assessment.quality_flags.unrelated_changes ? "Yes" : "No"}
+${assessment.quality_flags.logic_defects.length > 0 ? `- **Logic defects:** ${assessment.quality_flags.logic_defects.join("; ")}` : ""}
 ${assessment.quality_flags.anti_patterns.length > 0 ? `- **Anti-patterns:** ${assessment.quality_flags.anti_patterns.join(", ")}` : ""}` : ""}
 
 ### Decision: ${decisionText}`;

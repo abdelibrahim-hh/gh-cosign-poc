@@ -32,9 +32,9 @@ export interface RiskAssessment {
   };
   concerns: string[];
   quality_flags: {
-    missing_tests: boolean;
     security_concerns: boolean;
     unrelated_changes: boolean;
+    logic_defects: string[];
     anti_patterns: string[];
   };
 }
@@ -150,9 +150,9 @@ export function validateAssessment(data: unknown): RiskAssessment | null {
   // quality_flags is required in the schema but we validate gracefully
   if (d.quality_flags && typeof d.quality_flags === "object") {
     const qf = d.quality_flags as Record<string, unknown>;
-    if (typeof qf.missing_tests !== "boolean") return null;
     if (typeof qf.security_concerns !== "boolean") return null;
     if (typeof qf.unrelated_changes !== "boolean") return null;
+    if (!Array.isArray(qf.logic_defects)) return null;
     if (!Array.isArray(qf.anti_patterns)) return null;
   }
 
