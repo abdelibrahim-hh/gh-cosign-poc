@@ -12,6 +12,7 @@ export interface Config {
   thresholds: {
     auto_approve_max_risk: number;
     max_files_changed: number;
+    max_lines_changed: number;
   };
   claude: {
     provider: string;
@@ -30,6 +31,12 @@ export interface RiskAssessment {
     has_cross_module_impact: boolean;
   };
   concerns: string[];
+  quality_flags: {
+    missing_tests: boolean;
+    security_concerns: boolean;
+    unrelated_changes: boolean;
+    anti_patterns: string[];
+  };
 }
 
 export type Decision = "approve" | "abstain";
@@ -44,6 +51,7 @@ export interface GuardrailResult {
 export function checkGuardrails(
   changedFiles: string[],
   config: Config,
+  linesChanged = 0,
 ): GuardrailResult {
   if (changedFiles.length > config.thresholds.max_files_changed) {
     return {
@@ -51,6 +59,15 @@ export function checkGuardrails(
       decision: "abstain",
       reason: `PR changes ${changedFiles.length} files (max: ${config.thresholds.max_files_changed})`,
       guardrail: "max_files_changed",
+    };
+  }
+
+  if (linesChanged > config.thresholds.max_lines_changed) {
+    return {
+      triggered: true,
+      decision: "abstain",
+      reason: `PR changes ${linesChanged} lines (max: ${config.thresholds.max_lines_changed})`,
+      guardrail: "max_lines_changed",
     };
   }
 
@@ -130,6 +147,15 @@ export function validateAssessment(data: unknown): RiskAssessment | null {
 
   if (!Array.isArray(d.concerns)) return null;
 
+  // quality_flags is required in the schema but we validate gracefully
+  if (d.quality_flags && typeof d.quality_flags === "object") {
+    const qf = d.quality_flags as Record<string, unknown>;
+    if (typeof qf.missing_tests !== "boolean") return null;
+    if (typeof qf.security_concerns !== "boolean") return null;
+    if (typeof qf.unrelated_changes !== "boolean") return null;
+    if (!Array.isArray(qf.anti_patterns)) return null;
+  }
+
   return d as unknown as RiskAssessment;
 }
 
@@ -196,6 +222,7 @@ function buildUserMessage(context: PRContext): string {
 - **Author:** ${context.pr.author}
 - **Base branch:** ${context.pr.baseBranch}
 - **Labels:** ${context.pr.labels.join(", ") || "none"}
+- **Lines changed:** ${context.linesChanged}
 - **Description:** ${context.pr.description || "No description provided"}
 
 ## Changed Files (${context.changedFiles.length})

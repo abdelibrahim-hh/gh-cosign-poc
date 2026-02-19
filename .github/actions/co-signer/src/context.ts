@@ -16,6 +16,7 @@ export interface PRContext {
   };
   diff: string;
   changedFiles: string[];
+  linesChanged: number;
   codeowners: CodeownersEntry[];
   affectedOwners: string[];
 }
@@ -83,6 +84,7 @@ export async function assembleContext(
   });
 
   const changedFiles = files.map((f) => f.filename);
+  const linesChanged = files.reduce((sum, f) => sum + f.additions + f.deletions, 0);
 
   let codeownersContent = "";
   try {
@@ -114,6 +116,7 @@ export async function assembleContext(
     },
     diff: typeof diffData === "string" ? diffData : String(diffData),
     changedFiles,
+    linesChanged,
     codeowners,
     affectedOwners,
   };

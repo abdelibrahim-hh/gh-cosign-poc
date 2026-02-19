@@ -21,7 +21,8 @@ guardrails:
 
 thresholds:
   auto_approve_max_risk: 3
-  max_files_changed: 50
+  max_files_changed: 15
+  max_lines_changed: 500
 
 claude:
   provider: "anthropic"
