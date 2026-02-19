@@ -1,0 +1,53 @@
+name: Co-Signer
+on:
+  workflow_run:
+    workflows: ["HERO Stub"]
+    types: [completed]
+
+jobs:
+  assess:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Resolve PR number
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=$(echo '${{ toJSON(github.event.workflow_run.pull_requests) }}' \
+            | jq -r '.[0].number // empty')
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER=$(gh pr list \
+              --repo ${{ github.repository }} \
+              --head ${{ github.event.workflow_run.head_branch }} \
+              --json number --jq '.[0].number')
+          fi
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::warning::Could not resolve PR number — skipping"
+            exit 0
+          fi
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if no PR
+        if: steps.pr.outputs.pr_number == ''
+        run: echo "No PR found — nothing to assess"
+
+      - name: Checkout
+        if: steps.pr.outputs.pr_number != ''
+        uses: actions/checkout@v4
+
+      - name: Generate GitHub App token
+        if: steps.pr.outputs.pr_number != ''
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.COSIGN_APP_ID }}
+          private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+
+      - name: Run Co-Signer
+        if: steps.pr.outputs.pr_number != ''
+        uses: ./.github/actions/co-signer
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          pr-number: ${{ steps.pr.outputs.pr_number }}
