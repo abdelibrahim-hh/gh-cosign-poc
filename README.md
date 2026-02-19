@@ -29,5 +29,5 @@ npm run build         # rebuild ncc bundle
 
 ## E2E test
 
-1. **Low-risk:** edit `README.md` on a branch, open PR — expect auto-approval
+1. **Low-risk:** edit `README.md` on a branch, open PR — expect auto-approval (risk ≤ 3)
 2. **Guardrail:** edit a workflow file — expect ABSTAIN, no approval
