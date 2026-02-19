@@ -1,0 +1,25 @@
+guardrails:
+  never_approve_paths:
+    - ".github/workflows/**"
+    - ".github/CODEOWNERS"
+    - "deploy/**"
+
+  # Only applies when ALL changed files exclusively match these paths
+  always_low_risk_paths:
+    - "**/*.test.*"
+    - "**/*.stories.*"
+    - "**/*.md"
+
+  never_approve_dependency_paths:
+    - "package.json"
+    - "**/yarn.lock"
+    - "**/pnpm-lock.yaml"
+    - "**/package-lock.json"
+
+thresholds:
+  auto_approve_max_risk: 3
+  max_files_changed: 50
+
+claude:
+  provider: "anthropic"
+  model: "claude-sonnet-4-6"
