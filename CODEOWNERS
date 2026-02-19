@@ -1,3 +1,31 @@
-# Co-Signer bot — auto-approval for low-risk changes
-# Replace "ai-cosign" with the actual GitHub App name after creation
-* @ai-cosign[bot]
+# Default owners
+* @team-frontend
+
+# Infrastructure and CI
+.github/ @team-platform
+Dockerfile @team-platform
+.dockerignore @team-platform
+
+# Core shared modules
+src/common/ @team-frontend-platform
+src/store/ @team-frontend-platform
+
+# Components
+src/components/ @team-design-system
+src/components/charts/ @team-data-viz
+src/styles/ @team-design-system
+
+# Features
+src/features/ @team-product
+
+# Routes and pages
+src/routes/ @team-frontend
+src/pages/ @team-frontend
+
+# Localization
+src/assets/locales/ @team-i18n
+
+# Tests
+**/*.test.* @team-frontend
+**/*.spec.* @team-frontend
+e2e/ @team-qa

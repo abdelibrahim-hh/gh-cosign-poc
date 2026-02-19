@@ -3,12 +3,15 @@ guardrails:
     - ".github/workflows/**"
     - ".github/CODEOWNERS"
     - "deploy/**"
+    - "Dockerfile"
+    - ".dockerignore"
 
-  # Only applies when ALL changed files exclusively match these paths
   always_low_risk_paths:
     - "**/*.test.*"
+    - "**/*.spec.*"
     - "**/*.stories.*"
     - "**/*.md"
+    - "src/assets/locales/**"
 
   never_approve_dependency_paths:
     - "package.json"
