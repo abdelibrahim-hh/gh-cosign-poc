@@ -41786,13 +41786,21 @@ exports.assessRisk = assessRisk;
 const sdk_1 = __importDefault(__nccwpck_require__(121));
 const core = __importStar(__nccwpck_require__(7484));
 const picomatch_1 = __importDefault(__nccwpck_require__(4006));
-function checkGuardrails(changedFiles, config) {
+function checkGuardrails(changedFiles, config, linesChanged = 0) {
     if (changedFiles.length > config.thresholds.max_files_changed) {
         return {
             triggered: true,
             decision: "abstain",
             reason: `PR changes ${changedFiles.length} files (max: ${config.thresholds.max_files_changed})`,
             guardrail: "max_files_changed",
+        };
+    }
+    if (linesChanged > config.thresholds.max_lines_changed) {
+        return {
+            triggered: true,
+            decision: "abstain",
+            reason: `PR changes ${linesChanged} lines (max: ${config.thresholds.max_lines_changed})`,
+            guardrail: "max_lines_changed",
         };
     }
     for (const file of changedFiles) {
@@ -41860,6 +41868,18 @@ function validateAssessment(data) {
         return null;
     if (!Array.isArray(d.concerns))
         return null;
+    // quality_flags is required in the schema but we validate gracefully
+    if (d.quality_flags && typeof d.quality_flags === "object") {
+        const qf = d.quality_flags;
+        if (typeof qf.missing_tests !== "boolean")
+            return null;
+        if (typeof qf.security_concerns !== "boolean")
+            return null;
+        if (typeof qf.unrelated_changes !== "boolean")
+            return null;
+        if (!Array.isArray(qf.anti_patterns))
+            return null;
+    }
     return d;
 }
 async function assessRisk(context, config, systemPrompt, apiKey) {
@@ -41911,6 +41931,7 @@ function buildUserMessage(context) {
 - **Author:** ${context.pr.author}
 - **Base branch:** ${context.pr.baseBranch}
 - **Labels:** ${context.pr.labels.join(", ") || "none"}
+- **Lines changed:** ${context.linesChanged}
 - **Description:** ${context.pr.description || "No description provided"}
 
 ## Changed Files (${context.changedFiles.length})
@@ -42023,6 +42044,7 @@ async function assembleContext(octokit, owner, repo, prNumber) {
         per_page: 100,
     });
     const changedFiles = files.map((f) => f.filename);
+    const linesChanged = files.reduce((sum, f) => sum + f.additions + f.deletions, 0);
     let codeownersContent = "";
     try {
         const { data } = await octokit.rest.repos.getContent({
@@ -42052,6 +42074,7 @@ async function assembleContext(octokit, owner, repo, prNumber) {
         },
         diff: typeof diffData === "string" ? diffData : String(diffData),
         changedFiles,
+        linesChanged,
         codeowners,
         affectedOwners,
     };
@@ -42217,6 +42240,12 @@ ${assessment.reasoning}
 
 ${assessment.concerns.length > 0 ? `### Concerns\n${assessment.concerns.map((c) => `- ${c}`).join("\n")}` : ""}
 
+${assessment.quality_flags ? `### Quality Signals
+- **Missing tests:** ${assessment.quality_flags.missing_tests ? "Yes" : "No"}
+- **Security concerns:** ${assessment.quality_flags.security_concerns ? "Yes" : "No"}
+- **Unrelated changes:** ${assessment.quality_flags.unrelated_changes ? "Yes" : "No"}
+${assessment.quality_flags.anti_patterns.length > 0 ? `- **Anti-patterns:** ${assessment.quality_flags.anti_patterns.join(", ")}` : ""}` : ""}
+
 ### Decision: ${decisionText}`;
 }
 function formatGuardrailComment(decision, reason, guardrail, filesChanged) {
@@ -42276,7 +42305,7 @@ async function run() {
         const context = await (0, context_1.assembleContext)(octokit, owner, repo, prNumber);
         telemetry.files_changed = context.changedFiles.length;
         telemetry.owners_affected = context.affectedOwners;
-        const guardrailResult = (0, analyzer_1.checkGuardrails)(context.changedFiles, config);
+        const guardrailResult = (0, analyzer_1.checkGuardrails)(context.changedFiles, config, context.linesChanged);
         if (guardrailResult.triggered) {
             telemetry.guardrail_triggered = guardrailResult.guardrail;
             telemetry.decision = guardrailResult.decision;

@@ -12,6 +12,7 @@ export interface PRContext {
     };
     diff: string;
     changedFiles: string[];
+    linesChanged: number;
     codeowners: CodeownersEntry[];
     affectedOwners: string[];
 }

@@ -80,6 +80,12 @@ ${assessment.reasoning}
 
 ${assessment.concerns.length > 0 ? `### Concerns\n${assessment.concerns.map((c) => `- ${c}`).join("\n")}` : ""}
 
+${assessment.quality_flags ? `### Quality Signals
+- **Missing tests:** ${assessment.quality_flags.missing_tests ? "Yes" : "No"}
+- **Security concerns:** ${assessment.quality_flags.security_concerns ? "Yes" : "No"}
+- **Unrelated changes:** ${assessment.quality_flags.unrelated_changes ? "Yes" : "No"}
+${assessment.quality_flags.anti_patterns.length > 0 ? `- **Anti-patterns:** ${assessment.quality_flags.anti_patterns.join(", ")}` : ""}` : ""}
+
 ### Decision: ${decisionText}`;
 }
 
@@ -162,7 +168,7 @@ async function run(): Promise<void> {
     telemetry.files_changed = context.changedFiles.length;
     telemetry.owners_affected = context.affectedOwners;
 
-    const guardrailResult = checkGuardrails(context.changedFiles, config);
+    const guardrailResult = checkGuardrails(context.changedFiles, config, context.linesChanged);
 
     if (guardrailResult.triggered) {
       telemetry.guardrail_triggered = guardrailResult.guardrail;

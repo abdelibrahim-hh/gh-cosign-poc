@@ -8,6 +8,7 @@ export interface Config {
     thresholds: {
         auto_approve_max_risk: number;
         max_files_changed: number;
+        max_lines_changed: number;
     };
     claude: {
         provider: string;
@@ -25,6 +26,12 @@ export interface RiskAssessment {
         has_cross_module_impact: boolean;
     };
     concerns: string[];
+    quality_flags: {
+        missing_tests: boolean;
+        security_concerns: boolean;
+        unrelated_changes: boolean;
+        anti_patterns: string[];
+    };
 }
 export type Decision = "approve" | "abstain";
 export interface GuardrailResult {
@@ -33,7 +40,7 @@ export interface GuardrailResult {
     reason: string;
     guardrail: string | null;
 }
-export declare function checkGuardrails(changedFiles: string[], config: Config): GuardrailResult;
+export declare function checkGuardrails(changedFiles: string[], config: Config, linesChanged?: number): GuardrailResult;
 export declare function makeDecision(riskScore: number, threshold: number): Decision;
 export declare function validateAssessment(data: unknown): RiskAssessment | null;
 export declare function assessRisk(context: PRContext, config: Config, systemPrompt: string, apiKey: string): Promise<{

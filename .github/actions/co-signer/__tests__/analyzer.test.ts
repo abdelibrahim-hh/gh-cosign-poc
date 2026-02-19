@@ -20,6 +20,7 @@ const baseConfig: Config = {
   thresholds: {
     auto_approve_max_risk: 3,
     max_files_changed: 50,
+    max_lines_changed: 500,
   },
   claude: { provider: "anthropic", model: "claude-sonnet-4-5" },
 };
@@ -77,6 +78,20 @@ describe("checkGuardrails", () => {
       expect(result.triggered).toBe(true);
       expect(result.decision).toBe("abstain");
       expect(result.guardrail).toBe("max_files_changed");
+    });
+  });
+
+  describe("max_lines_changed", () => {
+    it("returns ABSTAIN when line count exceeds limit", () => {
+      const result = checkGuardrails(["src/App.tsx"], baseConfig, 501);
+      expect(result.triggered).toBe(true);
+      expect(result.decision).toBe("abstain");
+      expect(result.guardrail).toBe("max_lines_changed");
+    });
+
+    it("does not trigger when lines are within limit", () => {
+      const result = checkGuardrails(["src/App.tsx"], baseConfig, 200);
+      expect(result.triggered).toBe(false);
     });
   });
 
