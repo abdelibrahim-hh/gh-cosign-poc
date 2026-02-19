@@ -9,12 +9,14 @@ lerna-debug.log*
 
 node_modules
 dist
+!.github/actions/co-signer/dist
 dist-ssr
 *.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
 .idea
 .DS_Store
 *.suo
@@ -22,3 +24,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# storybook
+storybook-static
+
+# tests
+/coverage/

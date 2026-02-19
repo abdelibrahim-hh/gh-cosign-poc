@@ -1,7 +1,7 @@
 name: Co-Signer
 on:
   workflow_run:
-    workflows: ["HERO Stub"]
+    workflows: ["CI"]
     types: [completed]
 
 jobs:
